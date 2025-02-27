@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech text conversion</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #6ec2cb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            color: #161414;
+        }
+
+        textarea {
+            width: 60%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #211873;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        button {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f2f2ef;
+            color: #1807079c;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e1dfcf;
+        }
+
+        #output {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #110f0f;
+        }
+
+        #languageSelect {
+            margin-top: 10px;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #cbd97d;
+            border-radius: 5px;
+            background-color: #f1f185;
+            color: #1a1918;
+        }
+
+        #languageSelect option {
+            color: #fff;
+        }
+
+        #languageSelect option[value="en-US"] { background-color: #3498db; }
+        #languageSelect option[value="hi-IN"] { background-color: #e74c3c; }
+        #languageSelect option[value="ta-IN"] { background-color: #2ecc71; }
+        #languageSelect option[value="bn-IN"] { background-color: #f39c12; }
+        #languageSelect option[value="kn-IN"] { background-color: #9b59b6; }
+    </style>
+</head>
+<body>
+    <h1>Indian Language Speech Processing</h1>
+
+    <textarea id="textInput" placeholder="Enter text for speech synthesis or speak for recognition"></textarea>
+    <br>
+    <label for="languageSelect">Select Language:</label>
+    <select id="languageSelect">
+        <option value="en-US">English</option>
+        <option value="hi-IN">Hindi</option>
+        <option value="ta-IN">Tamil</option>
+        <option value="bn-IN">Bengali</option>
+        <option value="kn-IN">Kannada</option>
+    </select>
+    <button onclick="convertTextToSpeech()">Convert to Speech</button>
+    <button onclick="startSpeechRecognition()">Start Voice Recognition</button>
+    <button onclick="stopSpeechRecognition()">Stop Voice Recognition</button>
+    <button onclick="stopTextToSpeech()">Stop Speech</button>
+
+    <h2>Output</h2>
+    <p id="output"></p>
+
+    <script>
+        const synth = window.speechSynthesis;
+        const recognition = new webkitSpeechRecognition() || window.SpeechRecognition;
+        recognition.lang = 'en-US';
+        recognition.interimResults = true;
+
+        function convertTextToSpeech() {
+            const textToSpeak = document.getElementById('textInput').value.trim();
+            if (textToSpeak === '') {
+                alert('Please enter text for speech synthesis.');
+                return;
+            }
+
+            const selectedLanguage = document.getElementById('languageSelect').value;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = selectedLanguage;
+            synth.speak(utterance);
+        }
+
+        function stopTextToSpeech() {
+            synth.cancel();
+        }
+
+        function startSpeechRecognition() {
+            recognition.lang = document.getElementById('languageSelect').value;
+            recognition.start();
+        }
+
+        function stopSpeechRecognition() {
+            recognition.stop();
+        }
+
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    document.getElementById('output').innerText = event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript + ' ';
+                }
+            }
+            console.log('Interim transcript: ' + interimTranscript);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+        };
+
+        recognition.onend = function() {
+            console.log('Speech recognition ended');
+        };
+    </script>
+</body>
+</html>
